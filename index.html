@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Baseline</title>
+<meta name="description" content="Daily Command Center">
+<meta name="theme-color" content="#0f172a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Baseline">
+<link rel="manifest" href="manifest.json">
+<script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js" defer></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<style>
+  :root {
+    --primary: #3b82f6;
+    --primary-dark: #2563eb;
+    --primary-bg: #eff6ff;
+    --white: #ffffff;
+    --bg: #f8fafc;
+    --text: #0f172a;
+    --text-light: #64748b;
+    --text-muted: #94a3b8;
+    --border: #e2e8f0;
+    --red: #ef4444;
+    --orange: #f59e0b;
+    --green: #10b981;
+    --purple: #8b5cf6;
+    --sidebar-w: 220px;
+    --sidebar-bg: #0f172a;
+    --sidebar-text: rgba(255,255,255,.65);
+    --sidebar-hover: rgba(255,255,255,.08);
+    --sidebar-active: rgba(59,130,246,.25);
+    --accent: #3b82f6;
+    --accent-hover: #2563eb;
+    --radius: 10px;
+    --radius-sm: 6px;
+    --shadow: 0 1px 3px rgba(0,0,0,.08);
+    --shadow-lg: 0 4px 12px rgba(0,0,0,.1);
+  }
+  [data-theme="dark"] {
+    --primary-bg: #1e293b;
+    --white: #1e293b;
+    --bg: #0f172a;
+    --text: #e2e8f0;
+    --text-light: #94a3b8;
+    --text-muted: #64748b;
+    --border: #334155;
+    --shadow: 0 1px 3px rgba(0,0,0,.3);
+    --shadow-lg: 0 4px 12px rgba(0,0,0,.4);
+  }
+  [data-theme="dark"] input, [data-theme="dark"] select, [data-theme="dark"] textarea {
+    background: #334155; color: var(--text); border-color: #475569;
+  }
+  [data-theme="dark"] .card { background: var(--white); border-color: var(--border); }
+  [data-theme="dark"] .topbar { background: #1e293b; border-color: var(--border); }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Inter',system-ui,-apple-system,sans-serif; font-size:15px; color:var(--text); background:var(--bg); line-height:1.5; -webkit-font-smoothing:antialiased; }
+  a { color:var(--primary); text-decoration:none; }
+  button { cursor:pointer; font-family:inherit; }
+
+  /* Layout */
+  .app { display:flex; min-height:100vh; }
+  .sidebar { width:var(--sidebar-w); background:var(--sidebar-bg); display:flex; flex-direction:column; position:fixed; top:0; left:0; bottom:0; z-index:100; transition:width .2s ease, transform .2s ease; overflow:hidden; }
+  .sidebar.collapsed { width:60px; }
+  .main { margin-left:var(--sidebar-w); flex:1; min-height:100vh; transition:margin-left .2s ease; display:flex; flex-direction:column; }
+  .sidebar.collapsed ~ .main { margin-left:60px; }
+
+  /* Sidebar */
+  .sidebar-header { padding:20px 16px 12px; display:flex; align-items:center; gap:12px; }
+  .sidebar-logo { width:36px; height:36px; background:var(--primary); border-radius:8px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .sidebar-logo svg { width:20px; height:20px; stroke:white; }
+  .sidebar-brand { overflow:hidden; white-space:nowrap; }
+  .sidebar-brand h1 { font-size:16px; font-weight:700; color:#fff; letter-spacing:-.02em; }
+  .sidebar-brand p { font-size:11px; color:var(--sidebar-text); margin-top:1px; }
+  .collapsed .sidebar-brand { display:none; }
+
+  .nav-section { padding:8px 12px 4px; font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:.08em; color:rgba(255,255,255,.3); white-space:nowrap; overflow:hidden; }
+  .collapsed .nav-section { text-align:center; font-size:0; }
+  .collapsed .nav-section::after { content:''; display:block; width:20px; height:1px; background:rgba(255,255,255,.15); margin:4px auto; }
+
+  .nav-item { display:flex; align-items:center; gap:10px; padding:8px 12px; margin:1px 8px; border-radius:8px; color:var(--sidebar-text); font-size:13px; font-weight:500; cursor:pointer; transition:all .15s; position:relative; white-space:nowrap; overflow:hidden; }
+  .nav-item:hover { background:var(--sidebar-hover); color:rgba(255,255,255,.9); }
+  .nav-item.active { background:var(--sidebar-active); color:#fff; }
+  .nav-item i { flex-shrink:0; width:18px; height:18px; }
+  .nav-item .badge { position:absolute; right:8px; background:var(--red); color:#fff; font-size:10px; font-weight:700; padding:1px 6px; border-radius:10px; min-width:18px; text-align:center; }
+  .collapsed .nav-item { justify-content:center; padding:10px; margin:1px 6px; }
+  .collapsed .nav-item span, .collapsed .nav-item .badge { display:none; }
+
+  .sidebar-footer { margin-top:auto; padding:12px; border-top:1px solid rgba(255,255,255,.08); }
+  .sidebar-toggle { display:flex; align-items:center; justify-content:center; width:100%; padding:8px; border:none; background:none; color:var(--sidebar-text); border-radius:6px; cursor:pointer; }
+  .sidebar-toggle:hover { background:var(--sidebar-hover); }
+
+  /* Business pills in sidebar */
+  .biz-pills { padding:8px 12px; display:flex; flex-direction:column; gap:4px; }
+  .biz-pill { display:flex; align-items:center; gap:8px; padding:6px 10px; border-radius:6px; font-size:11px; font-weight:600; color:rgba(255,255,255,.7); cursor:default; }
+  .biz-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+  .biz-pill .coming-soon { font-size:9px; font-weight:500; opacity:.5; margin-left:auto; }
+  .collapsed .biz-pills { align-items:center; }
+  .collapsed .biz-pill span, .collapsed .biz-pill .coming-soon { display:none; }
+
+  /* Topbar */
+  .topbar { height:56px; background:var(--white); border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; padding:0 24px; position:sticky; top:0; z-index:50; }
+  .topbar h2 { font-size:17px; font-weight:700; letter-spacing:-.01em; }
+  .topbar-actions { display:flex; align-items:center; gap:8px; }
+  .topbar-btn { border:none; background:none; color:var(--text-light); padding:6px; border-radius:6px; display:flex; align-items:center; }
+  .topbar-btn:hover { background:var(--bg); color:var(--text); }
+
+  /* Content */
+  .content { padding:24px; flex:1; max-width:1200px; }
+
+  /* Cards */
+  .card { background:var(--white); border:1px solid var(--border); border-radius:var(--radius); padding:20px; box-shadow:var(--shadow); }
+  .card-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+  .card-title { font-size:14px; font-weight:600; color:var(--text); display:flex; align-items:center; gap:8px; }
+  .card-title i { width:16px; height:16px; color:var(--text-light); }
+
+  /* Stat cards */
+  .stats-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:16px; margin-bottom:24px; }
+  .stat-card { background:var(--white); border:1px solid var(--border); border-radius:var(--radius); padding:16px 20px; box-shadow:var(--shadow); }
+  .stat-label { font-size:12px; font-weight:500; color:var(--text-muted); text-transform:uppercase; letter-spacing:.03em; margin-bottom:4px; }
+  .stat-value { font-size:24px; font-weight:700; letter-spacing:-.02em; }
+  .stat-sub { font-size:12px; color:var(--text-light); margin-top:2px; }
+
+  /* Briefing sections */
+  .briefing-section { margin-bottom:24px; }
+  .briefing-section-title { font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:.06em; color:var(--text-muted); margin-bottom:10px; display:flex; align-items:center; gap:6px; }
+  .briefing-item { display:flex; align-items:flex-start; gap:12px; padding:12px 16px; background:var(--white); border:1px solid var(--border); border-radius:var(--radius-sm); margin-bottom:6px; transition:background .1s; cursor:pointer; }
+  .briefing-item:hover { background:var(--bg); }
+  .briefing-item .bi-icon { flex-shrink:0; width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; }
+  .briefing-item .bi-body { flex:1; min-width:0; }
+  .briefing-item .bi-title { font-size:14px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .briefing-item .bi-desc { font-size:12px; color:var(--text-light); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .briefing-item .bi-meta { flex-shrink:0; text-align:right; font-size:11px; color:var(--text-muted); }
+  .briefing-item .bi-biz { display:inline-block; padding:1px 6px; border-radius:4px; font-size:10px; font-weight:600; }
+
+  /* Priority tags */
+  .priority-urgent { color:var(--red); }
+  .priority-high { color:var(--orange); }
+  .priority-medium { color:var(--primary); }
+  .priority-low { color:var(--text-muted); }
+
+  /* Status badges */
+  .status-badge { display:inline-block; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:600; text-transform:capitalize; }
+  .status-active, .status-paid { background:#d1fae5; color:#065f46; }
+  .status-sent, .status-scheduled { background:#dbeafe; color:#1e40af; }
+  .status-draft { background:#f1f5f9; color:#64748b; }
+  .status-late, .status-overdue { background:#fee2e2; color:#991b1b; }
+  .status-new, .status-lead { background:#fef3c7; color:#92400e; }
+  [data-theme="dark"] .status-active, [data-theme="dark"] .status-paid { background:rgba(16,185,129,.15); color:#6ee7b7; }
+  [data-theme="dark"] .status-sent, [data-theme="dark"] .status-scheduled { background:rgba(59,130,246,.15); color:#93c5fd; }
+  [data-theme="dark"] .status-draft { background:rgba(100,116,139,.15); color:#94a3b8; }
+  [data-theme="dark"] .status-late, [data-theme="dark"] .status-overdue { background:rgba(239,68,68,.15); color:#fca5a5; }
+  [data-theme="dark"] .status-new, [data-theme="dark"] .status-lead { background:rgba(245,158,11,.15); color:#fcd34d; }
+
+  /* Buttons */
+  .btn { display:inline-flex; align-items:center; gap:6px; padding:8px 16px; border-radius:var(--radius-sm); font-size:13px; font-weight:600; border:none; transition:all .15s; }
+  .btn-primary { background:var(--primary); color:#fff; }
+  .btn-primary:hover { background:var(--primary-dark); }
+  .btn-outline { background:transparent; border:1px solid var(--border); color:var(--text); }
+  .btn-outline:hover { background:var(--bg); }
+  .btn-sm { padding:5px 10px; font-size:12px; }
+  .btn-icon { padding:6px; border:none; background:none; color:var(--text-light); border-radius:6px; display:flex; align-items:center; }
+  .btn-icon:hover { background:var(--bg); color:var(--text); }
+
+  /* Pipeline table */
+  .data-table { width:100%; border-collapse:collapse; font-size:13px; }
+  .data-table th { text-align:left; padding:8px 12px; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.04em; color:var(--text-muted); background:var(--bg); border-bottom:1px solid var(--border); }
+  .data-table td { padding:10px 12px; border-bottom:1px solid var(--border); vertical-align:middle; }
+  .data-table tr:hover td { background:rgba(59,130,246,.03); }
+
+  /* Empty state */
+  .empty-state { text-align:center; padding:48px 24px; color:var(--text-light); }
+  .empty-state h3 { font-size:16px; font-weight:600; color:var(--text); margin:12px 0 4px; }
+  .empty-state p { font-size:13px; }
+
+  /* Toast */
+  .toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%) translateY(20px); padding:10px 20px; border-radius:8px; font-size:13px; font-weight:500; background:#1e293b; color:#f1f5f9; box-shadow:var(--shadow-lg); opacity:0; transition:all .3s; z-index:9999; pointer-events:none; }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+  .toast-error { background:var(--red); color:#fff; }
+
+  /* Loading spinner */
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .spinner { width:28px; height:28px; border:3px solid var(--border); border-top-color:var(--primary); border-radius:50%; animation:spin .7s linear infinite; }
+
+  /* Action items checklist */
+  .action-item { display:flex; align-items:center; gap:10px; padding:10px 14px; border-bottom:1px solid var(--border); }
+  .action-item:last-child { border-bottom:none; }
+  .action-item input[type="checkbox"] { width:16px; height:16px; accent-color:var(--primary); cursor:pointer; }
+  .action-item.done .ai-text { text-decoration:line-through; color:var(--text-muted); }
+  .ai-text { flex:1; font-size:13px; }
+  .ai-priority { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; }
+
+  /* Responsive */
+  @media (max-width:768px) {
+    .sidebar { transform:translateX(-100%); width:260px; }
+    .sidebar.open { transform:translateX(0); }
+    .sidebar.collapsed { transform:translateX(-100%); }
+    .main { margin-left:0 !important; }
+    .content { padding:16px; }
+    .topbar { padding:0 16px; }
+    .stats-grid { grid-template-columns:repeat(2, 1fr); }
+    .mobile-menu-btn { display:flex !important; }
+  }
+  @media (min-width:769px) {
+    .mobile-menu-btn { display:none !important; }
+    .sidebar-overlay { display:none !important; }
+  }
+  .sidebar-overlay { position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:99; display:none; }
+  .sidebar-overlay.open { display:block; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width:6px; }
+  ::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+  ::-webkit-scrollbar-track { background:transparent; }
+
+  /* Filter pills */
+  .filter-bar { display:flex; gap:6px; margin-bottom:16px; flex-wrap:wrap; }
+  .filter-pill { padding:5px 12px; border-radius:20px; font-size:12px; font-weight:500; border:1px solid var(--border); background:var(--white); color:var(--text-light); cursor:pointer; transition:all .15s; }
+  .filter-pill.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+  .filter-pill:hover:not(.active) { background:var(--bg); color:var(--text); }
+
+  /* Greeting */
+  .greeting { font-size:22px; font-weight:700; letter-spacing:-.02em; margin-bottom:4px; }
+  .greeting-sub { font-size:14px; color:var(--text-light); margin-bottom:24px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- Sidebar Overlay (mobile) -->
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleMobileSidebar()"></div>
+
+  <!-- Sidebar -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo"><i data-lucide="activity"></i></div>
+      <div class="sidebar-brand">
+        <h1 id="appName">Baseline</h1>
+        <p id="appTagline">Command Center</p>
+      </div>
+    </div>
+
+    <div class="nav-section">Overview</div>
+    <div class="nav-item active" data-page="briefing" onclick="loadPage('briefing')">
+      <i data-lucide="layout-dashboard"></i><span>Briefing</span>
+    </div>
+    <div class="nav-item" data-page="inbox" onclick="loadPage('inbox')">
+      <i data-lucide="inbox"></i><span>Inbox</span><div class="badge" id="badgeInbox" style="display:none">0</div>
+    </div>
+
+    <div class="nav-section">Business</div>
+    <div class="nav-item" data-page="pipeline" onclick="loadPage('pipeline')">
+      <i data-lucide="git-pull-request"></i><span>Pipeline</span>
+    </div>
+    <div class="nav-item" data-page="calendar" onclick="loadPage('calendar')">
+      <i data-lucide="calendar-days"></i><span>Calendar</span>
+    </div>
+    <div class="nav-item" data-page="calls" onclick="loadPage('calls')">
+      <i data-lucide="phone"></i><span>Calls</span>
+    </div>
+
+    <div class="nav-section">Businesses</div>
+    <div class="biz-pills" id="bizPills"></div>
+
+    <div class="nav-section" style="margin-top:8px;"></div>
+    <div class="nav-item" data-page="settings" onclick="loadPage('settings')">
+      <i data-lucide="settings"></i><span>Settings</span>
+    </div>
+
+    <div class="sidebar-footer">
+      <button class="sidebar-toggle" onclick="toggleSidebar()" title="Toggle sidebar">
+        <i data-lucide="panel-left-close" id="sidebarToggleIcon"></i>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <div class="main">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <button class="btn-icon mobile-menu-btn" onclick="toggleMobileSidebar()"><i data-lucide="menu"></i></button>
+        <h2 id="pageTitle">Briefing</h2>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn-icon" onclick="refreshData()" title="Refresh"><i data-lucide="refresh-cw"></i></button>
+        <button class="btn-icon" onclick="toggleTheme()" title="Toggle theme"><i data-lucide="moon" id="themeIcon"></i></button>
+      </div>
+    </div>
+    <div class="content" id="pageContent">
+      <div style="display:flex;align-items:center;justify-content:center;padding:80px;">
+        <div class="spinner"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="config.js"></script>
+<script src="src/ui.js"></script>
+<script src="src/db.js"></script>
+<script src="src/supabase.js"></script>
+<script src="src/channels/branchmanager.js"></script>
+<script src="src/channels/smartlawn.js"></script>
+<script src="src/channels/gmail.js"></script>
+<script src="src/channels/calendar.js"></script>
+<script src="src/channels/dialpad.js"></script>
+<script src="src/pages/briefing.js"></script>
+<script src="src/pages/pipeline.js"></script>
+<script src="src/pages/inbox.js"></script>
+<script src="src/pages/calendar.js"></script>
+<script src="src/pages/calls.js"></script>
+<script src="src/pages/settings.js"></script>
+<script>
+// ── App Shell ──
+
+var currentPage = 'briefing';
+
+var pageTitles = {
+  briefing: 'Briefing',
+  inbox:    'Inbox',
+  pipeline: 'Pipeline',
+  calendar: 'Calendar',
+  calls:    'Calls',
+  settings: 'Settings'
+};
+
+var pageRenderers = {
+  briefing: function() { BriefingPage.render(); },
+  inbox:    function() { InboxPage.render(); },
+  pipeline: function() { PipelinePage.render(); },
+  calendar: function() { CalendarPage.render(); },
+  calls:    function() { CallsPage.render(); },
+  settings: function() { SettingsPage.render(); }
+};
+
+function loadPage(page) {
+  if (!pageTitles[page]) return;
+  currentPage = page;
+  window.location.hash = page;
+
+  // Update nav active state
+  document.querySelectorAll('.nav-item').forEach(function(n) {
+    n.classList.toggle('active', n.dataset.page === page);
+  });
+
+  // Update title
+  document.getElementById('pageTitle').textContent = pageTitles[page];
+
+  // Show loading
+  document.getElementById('pageContent').innerHTML =
+    '<div style="display:flex;align-items:center;justify-content:center;padding:80px;"><div class="spinner"></div></div>';
+
+  // Close mobile sidebar
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('open');
+
+  // Render page
+  if (pageRenderers[page]) {
+    try {
+      var result = pageRenderers[page]();
+      if (result && result.catch) result.catch(function(e) { console.error('[loadPage]', e); });
+    } catch(e) { console.error('[loadPage]', e); }
+  }
+
+  // Re-init Lucide icons after render
+  setTimeout(function() { if (window.lucide) lucide.createIcons(); }, 50);
+}
+
+function refreshData() {
+  loadPage(currentPage);
+  UI.toast('Refreshing...');
+}
+
+// ── Sidebar ──
+
+function toggleSidebar() {
+  var sb = document.getElementById('sidebar');
+  sb.classList.toggle('collapsed');
+  localStorage.setItem('bl-sidebar', sb.classList.contains('collapsed') ? 'collapsed' : 'expanded');
+  setTimeout(function() { if (window.lucide) lucide.createIcons(); }, 250);
+}
+
+function toggleMobileSidebar() {
+  var sb = document.getElementById('sidebar');
+  var ov = document.getElementById('sidebarOverlay');
+  sb.classList.toggle('open');
+  ov.classList.toggle('open');
+}
+
+// ── Theme ──
+
+function toggleTheme() {
+  var current = document.documentElement.getAttribute('data-theme');
+  var next = current === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('bl-theme', next);
+  var icon = document.getElementById('themeIcon');
+  if (icon) icon.setAttribute('data-lucide', next === 'dark' ? 'sun' : 'moon');
+  setTimeout(function() { if (window.lucide) lucide.createIcons(); }, 50);
+}
+
+// ── Business Pills ──
+
+function renderBizPills() {
+  var html = '';
+  BL_CONFIG.businesses.forEach(function(biz) {
+    html += '<div class="biz-pill">'
+      + '<div class="biz-dot" style="background:' + biz.color + '"></div>'
+      + '<span>' + biz.shortName + '</span>'
+      + (biz.comingSoon ? '<span class="coming-soon">Soon</span>' : '')
+      + '</div>';
+  });
+  document.getElementById('bizPills').innerHTML = html;
+}
+
+// ── Greeting ──
+
+function getGreeting() {
+  var h = new Date().getHours();
+  var name = BL_CONFIG.ownerName.split(' ')[0];
+  if (h < 12) return 'Good morning, ' + name;
+  if (h < 17) return 'Good afternoon, ' + name;
+  return 'Good evening, ' + name;
+}
+
+// ── Init ──
+
+function initApp() {
+  // Restore theme
+  var savedTheme = localStorage.getItem('bl-theme');
+  if (savedTheme === 'dark') {
+    document.documentElement.setAttribute('data-theme', 'dark');
+    var icon = document.getElementById('themeIcon');
+    if (icon) icon.setAttribute('data-lucide', 'sun');
+  }
+
+  // Restore sidebar state
+  if (localStorage.getItem('bl-sidebar') === 'collapsed') {
+    document.getElementById('sidebar').classList.add('collapsed');
+  }
+
+  // Render business pills
+  renderBizPills();
+
+  // Init Supabase clients
+  SupabaseManager.init();
+
+  // Route
+  var hash = window.location.hash.replace('#', '') || 'briefing';
+  loadPage(hash);
+}
+
+window.addEventListener('hashchange', function() {
+  var hash = window.location.hash.replace('#', '');
+  if (hash && hash !== currentPage) loadPage(hash);
+});
+
+document.addEventListener('DOMContentLoaded', initApp);
+
+// Service Worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(function(e) { console.log('SW:', e); });
+}
+</script>
+</body>
+</html>
