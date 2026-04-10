@@ -300,6 +300,7 @@
 <script src="config.js"></script>
 <script src="src/ui.js"></script>
 <script src="src/db.js"></script>
+<script src="src/auth.js"></script>
 <script src="src/supabase.js"></script>
 <script src="src/channels/branchmanager.js"></script>
 <script src="src/channels/smartlawn.js"></script>
@@ -444,12 +445,28 @@ function initApp() {
   // Render business pills
   renderBizPills();
 
-  // Init Supabase clients
+  // Restore saved Google Client ID
+  var savedClientId = localStorage.getItem('bl-google-client-id');
+  if (savedClientId) BL_CONFIG.googleClientId = savedClientId;
+
+  // Init Supabase clients (async CDN load)
   SupabaseManager.init();
 
-  // Route
+  // Init Google Auth (loads GIS + gapi CDNs)
+  GoogleAuth.init();
+
+  // Wait for Supabase CDN before loading first page
   var hash = window.location.hash.replace('#', '') || 'briefing';
-  loadPage(hash);
+  function tryLoadPage() {
+    if (SupabaseManager.ready) {
+      loadPage(hash);
+    } else {
+      setTimeout(tryLoadPage, 200);
+    }
+  }
+  // Start trying, but cap at 5s then load anyway
+  tryLoadPage();
+  setTimeout(function() { if (!document.querySelector('.greeting')) loadPage(hash); }, 5000);
 }
 
 window.addEventListener('hashchange', function() {

@@ -18,11 +18,27 @@ var BriefingPage = {
 
     // Fetch all channel data in parallel
     var bmData, slData;
+    var gmailTree = [], gmailLawn = [], calTree = [], calLawn = [];
     try {
-      [bmData, slData] = await Promise.all([
+      var fetches = [
         BMChannel.fetchPipeline(),
         SLChannel.fetchPipeline()
-      ]);
+      ];
+      // Add Gmail fetches if connected
+      if (GmailChannel.isConnected('tree')) fetches.push(GmailChannel.fetchUnread('tree', 15));
+      if (GmailChannel.isConnected('lawn')) fetches.push(GmailChannel.fetchUnread('lawn', 15));
+      // Add Calendar fetches if connected
+      if (CalendarChannel.isConnected('tree')) fetches.push(CalendarChannel.fetchUpcoming('tree', 7));
+      if (CalendarChannel.isConnected('lawn')) fetches.push(CalendarChannel.fetchUpcoming('lawn', 7));
+
+      var results = await Promise.all(fetches);
+      var idx = 0;
+      bmData = results[idx++];
+      slData = results[idx++];
+      if (GmailChannel.isConnected('tree')) gmailTree = results[idx++] || [];
+      if (GmailChannel.isConnected('lawn')) gmailLawn = results[idx++] || [];
+      if (CalendarChannel.isConnected('tree')) calTree = results[idx++] || [];
+      if (CalendarChannel.isConnected('lawn')) calLawn = results[idx++] || [];
     } catch(e) {
       console.warn('[Briefing] Fetch error:', e);
       bmData = DB.getPipeline('tree');
@@ -33,6 +49,10 @@ var BriefingPage = {
     var items = [];
     items = items.concat(BMChannel.toBriefingItems(bmData));
     items = items.concat(SLChannel.toBriefingItems(slData));
+    items = items.concat(GmailChannel.toBriefingItems(gmailTree, 'tree'));
+    items = items.concat(GmailChannel.toBriefingItems(gmailLawn, 'lawn'));
+    items = items.concat(CalendarChannel.toBriefingItems(calTree, 'tree'));
+    items = items.concat(CalendarChannel.toBriefingItems(calLawn, 'lawn'));
 
     // Sort by priority then timestamp
     var priorityOrder = { urgent: 0, high: 1, medium: 2, low: 3 };

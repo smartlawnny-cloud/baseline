@@ -1,4 +1,4 @@
-var CACHE_NAME = 'baseline-v1';
+var CACHE_NAME = 'baseline-v2';
 var ASSETS = [
   './',
   './index.html',
@@ -6,6 +6,7 @@ var ASSETS = [
   './manifest.json',
   './src/ui.js',
   './src/db.js',
+  './src/auth.js',
   './src/supabase.js',
   './src/channels/branchmanager.js',
   './src/channels/smartlawn.js',
